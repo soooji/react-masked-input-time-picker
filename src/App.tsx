@@ -25,6 +25,7 @@ const TIMING_FORMAT_OPTIONS: SelectOption<TimingFormatType>[] = [
 const Container = styled.div`
   display: flex;
   align-items: center;
+  flex-direction: column-reverse;
   gap: 12px;
   &,
   * {
