@@ -155,8 +155,21 @@ export default function App() {
     );
   };
 
+  const onChangeTimingFormat = (
+    selectedTimingFormatOption: SelectOption<TimingFormatType>
+  ) => {
+    setTimingFormat(selectedTimingFormatOption);
+    if (!timeInputValue) return;
+    const transformedTimeValue = getUppercasedValue(
+      selectedTimingFormatOption.value === "12h"
+        ? moment(selectedTimeValue, "HH:mm").format("hh:mm a")
+        : moment(selectedTimeValue, "hh:mm a").format("HH:mm")
+    );
+    setTimeInputValue(transformedTimeValue);
+  };
+
   useEffect(() => {
-    if (amPmTimeRegex.test(timeInputValue)) {
+    if (isValidAmPmTime(timeInputValue)) {
       setSelectedTimeValue(timeInputValue);
     }
   }, [timeInputValue]);
@@ -203,7 +216,7 @@ export default function App() {
       <InlineSelect
         value={timingFormat}
         options={TIMING_FORMAT_OPTIONS}
-        onChange={(value) => setTimingFormat(value)}
+        onChange={onChangeTimingFormat}
       />
       <ResultContainer>
         <b>Moment.js Value:</b>{" "}
