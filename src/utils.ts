@@ -30,9 +30,6 @@ const formatMinute = (minute: string) => {
 
 const formatAmPm = (ampm: string) => {
   let formattedAmPm = ampm;
-  console.log("ampm[0]", ampm[0]);
-  console.log('!["A", "P"].includes(ampm[0])', ["A", "P"].indexOf(ampm[0]));
-  console.log("ampm.length", ampm.length);
   if (!ampm || ["A", "P"].indexOf(ampm[0]) === -1) {
     return "";
   }

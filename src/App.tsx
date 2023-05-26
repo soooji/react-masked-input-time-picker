@@ -107,7 +107,10 @@ export default function App() {
 
   const getTimeSelectionSuggestions = (time: Moment) => {
     const sameHourOptions = [];
-    const startOfHour = time.clone().startOf("hour");
+    const startOfHour =
+      time.minutes() > 30
+        ? time.clone().add(1, "h").startOf("hour")
+        : time.clone().set("m", 30);
     const endOfHour = time.clone().add(3, "h").endOf("hour");
     const intervalMinutes = 30;
     for (
