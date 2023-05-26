@@ -5,10 +5,23 @@ import {
   amPmTimeRegex,
   getFormattedAMPMTimeFromStringValue,
   getTimeSelectionSuggestions,
+  TimingFormatType,
+  twentyFourHourTimeRegex,
 } from "./utils";
 import styled from "styled-components";
 import { useClickOutside } from "./useClickOutside";
 import ClockIcon from "./clock.svg";
+import { InlineSelect, SelectOption } from "./InlineSelect";
+const TIMING_FORMAT_OPTIONS: SelectOption<TimingFormatType>[] = [
+  {
+    value: "12h",
+    label: "12h",
+  },
+  {
+    value: "24h",
+    label: "24h",
+  },
+];
 
 const Container = styled.div`
   display: flex;
@@ -109,10 +122,17 @@ export default function App() {
   const [timeInputValue, setTimeInputValue] = useState("");
   const [selectedTimeValue, setSelectedTimeValue] = useState("");
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
+  const [timingFormat, setTimingFormat] = useState<
+    SelectOption<TimingFormatType>
+  >(TIMING_FORMAT_OPTIONS[0]);
   const inputContentRef = useRef<HTMLDivElement>(null);
 
   const isValidAmPmTime = (timeValue: string) =>
-    amPmTimeRegex.test(timeInputValue);
+    timingFormat.value === "12h"
+      ? amPmTimeRegex.test(timeValue)
+      : twentyFourHourTimeRegex.test(timeValue);
+
+  const momentFormat = timingFormat.value === "12h" ? "hh:mm a" : "HH:mm";
 
   useClickOutside(inputContentRef, () => {
     setIsDropDownOpen(false);
@@ -125,13 +145,14 @@ export default function App() {
   });
 
   const onSelectOption = (timeOption: Moment) => {
-    setTimeInputValue(getUppercasedValue(timeOption.format("hh:mm a")));
+    setTimeInputValue(getUppercasedValue(timeOption.format(momentFormat)));
     setIsDropDownOpen(false);
   };
 
   const onChangeInputValue = (typedValue: string) => {
     setTimeInputValue(
-      getFormattedAMPMTimeFromStringValue(typedValue) ?? timeInputValue
+      getFormattedAMPMTimeFromStringValue(typedValue, timingFormat.value) ??
+        timeInputValue
     );
   };
 
@@ -147,7 +168,7 @@ export default function App() {
     const defaultTimeForSuggestions = moment();
     return getTimeSelectionSuggestions(
       timeInputValue
-        ? moment(timeInputValue, "hh:mm a")
+        ? moment(timeInputValue, momentFormat)
         : defaultTimeForSuggestions
     );
   }, [timeInputValue]);
@@ -160,7 +181,7 @@ export default function App() {
       <InputContainer ref={inputContentRef}>
         <StyledInput
           value={timeInputValue}
-          placeholder={moment().format("hh:mm a").toUpperCase()}
+          placeholder={moment().format(momentFormat).toUpperCase()}
           className={isValidAmPmTime(timeInputValue) ? "--valid" : ""}
           onChange={(event) => onChangeInputValue(event.target.value)}
         />
@@ -175,15 +196,22 @@ export default function App() {
               key={timeOption.toString()}
               onClick={() => onSelectOption(timeOption)}
             >
-              {getUppercasedValue(timeOption.format("hh:mm a"))}
+              {getUppercasedValue(timeOption.format(momentFormat))}
             </DropDownListItem>
           ))}
         </DropDownOptionsContainer>
       </InputContainer>
+      <InlineSelect
+        value={timingFormat}
+        options={TIMING_FORMAT_OPTIONS}
+        onChange={(value) => setTimingFormat(value)}
+      />
       <ResultContainer>
         <b>Moment.js Value:</b>{" "}
         {selectedTimeValue
-          ? moment(selectedTimeValue, "hh:mm a").format("YYYY-MM-DD HH:mm:ss")
+          ? moment(selectedTimeValue, momentFormat).format(
+              "YYYY-MM-DD HH:mm:ss"
+            )
           : "-"}
       </ResultContainer>
     </Container>

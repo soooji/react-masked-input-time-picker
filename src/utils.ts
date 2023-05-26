@@ -1,18 +1,22 @@
 import { Moment } from "moment";
 
+export type TimingFormatType = "12h" | "24h";
+
 const onlyDigitCheckerRegex = new RegExp(/^[0-9]*$/);
 export const amPmTimeRegex = /^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/;
+export const twentyFourHourTimeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
 // Time formating + masking
-const formatHour = (hour: string) => {
+const formatHour = (hour: string, format: TimingFormatType) => {
   let formattedHour = hour;
-  if (hour.length === 1 && parseInt(hour[0]) > 2) {
+  const maxHour = format === "12h" ? 12 : 23;
+  if (hour.length === 1 && parseInt(hour[0]) > Math.floor(maxHour / 10)) {
     formattedHour = `0${hour[0]}`;
   } else if (hour.length === 2) {
     if (Number(hour) === 0) {
       formattedHour = `01`;
-    } else if (Number(hour) > 12) {
-      formattedHour = "12";
+    } else if (Number(hour) > maxHour) {
+      formattedHour = `${maxHour}`;
     }
   }
   return formattedHour;
@@ -43,7 +47,10 @@ const formatAmPm = (ampm: string) => {
   return formattedAmPm;
 };
 
-export function getFormattedAMPMTimeFromStringValue(inputValue: string) {
+export function getFormattedAMPMTimeFromStringValue(
+  inputValue: string,
+  format: TimingFormatType = "12h"
+) {
   if (inputValue === "") return "";
   const cleanedTimeValue = inputValue
     .toUpperCase()
@@ -63,10 +70,14 @@ export function getFormattedAMPMTimeFromStringValue(inputValue: string) {
     return;
   }
 
-  let hour = formatHour(hourChunk);
+  let hour = formatHour(hourChunk, format);
   let minute = formatMinute(minuteChunk);
-  let ampm = formatAmPm(ampmChunk);
 
+  if (format === "24h") {
+    return `${hour}${minute ? ":" + minute : ""}`;
+  }
+
+  let ampm = formatAmPm(ampmChunk);
   return `${hour}${minute ? ":" + minute : ""}${ampm ? " " + ampm : ""}`;
 }
 
