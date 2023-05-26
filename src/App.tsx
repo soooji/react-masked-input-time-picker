@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import "./styles.css";
 import { getFormattedAMPMTimeFromStringValue } from "./utils";
 import styled from "styled-components";
-import { useClickOutsideTypescript } from "./useClickOutside";
+import { useClickOutside } from "./useClickOutside";
 
 const Container = styled.div`
   &,
@@ -101,7 +101,7 @@ export default function App() {
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useClickOutsideTypescript(inputRef, () => {
+  useClickOutside(inputRef, () => {
     setIsDropDownOpen(false);
   });
 
@@ -169,7 +169,7 @@ export default function App() {
 
       <br />
       <ResultContainer>
-        <b>Moment.js Value:</b> {moment(val, "hh:mm a").format()}
+        <b>Moment.js Value:</b> {moment(val, "hh:mm a").format("hh:mm a")}
       </ResultContainer>
     </Container>
   );

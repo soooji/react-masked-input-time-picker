@@ -1,6 +1,7 @@
+import { Moment } from "moment";
 import { useEffect } from "react";
 
-export const useClickOutsideTypescript = (
+export const useClickOutside = (
   ref: React.MutableRefObject<any>,
   callback: () => void
 ) => {
