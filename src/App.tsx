@@ -10,7 +10,6 @@ import {
 } from "./utils";
 import styled from "styled-components";
 import { useClickOutside } from "./useClickOutside";
-import ClockIcon from "./clock.svg";
 import { InlineSelect, SelectOption } from "./InlineSelect";
 const TIMING_FORMAT_OPTIONS: SelectOption<TimingFormatType>[] = [
   {
@@ -186,7 +185,7 @@ export default function App() {
           onChange={(event) => onChangeInputValue(event.target.value)}
         />
         <TimeInputEndornment onClick={() => setIsDropDownOpen(!isDropDownOpen)}>
-          <img src={ClockIcon} alt="clock icon" />
+          <img src="/clock.svg" alt="clock icon" />
         </TimeInputEndornment>
         <DropDownOptionsContainer
           className={isDropDownOpenVisible ? "--visible" : ""}
