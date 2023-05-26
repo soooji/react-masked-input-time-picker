@@ -8,51 +8,46 @@ import {
 } from "./utils";
 import styled from "styled-components";
 import { useClickOutside } from "./useClickOutside";
+import ClockIcon from "./clock.svg";
 
 const Container = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
   &,
   * {
     color: white;
   }
 `;
 
-const ResultContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  margin-top: 24px;
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.9);
-  b {
-    color: rgba(255, 255, 255, 0.5);
-    margin-right: 4px;
-  }
+const InputContainer = styled.div`
+  position: relative;
+  display: block;
 `;
 
-const StyledChevronTriangle = styled.div`
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid white;
-  position: absolute;
-  right: 10px;
-  z-index: 1;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  transition: transform 0.2s ease-in-out;
-  &.--up {
-    transform: translateY(-50%) rotate(180deg);
+const StyledInput = styled.input`
+  border: 1px solid black;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: none;
+  padding: 12px;
+  font-size: 1rem;
+  &:focus {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+  &.--valid {
+    box-shadow: 0 0 0 1px rgba(0, 255, 0, 0.4);
+    background-color: rgba(0, 255, 0, 0.05);
   }
 `;
 
 const DropDownOptionsContainer = styled.div`
   position: absolute;
-  top: calc(100% + 16px);
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
   background-color: #1f1f1f;
-  border-radius: 5px;
+  border-radius: 12px;
   border: 1px solid black;
   padding: 4px;
   z-index: 1;
@@ -67,50 +62,78 @@ const DropDownOptionsContainer = styled.div`
   }
 `;
 
-const InputContainer = styled.div`
-  position: relative;
-  display: inline;
-`;
-
-const StyledInput = styled.input`
-  border: 1px solid black;
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  border: none;
-  padding: 12px;
-  font-size: 1rem;
-  &:focus {
-    background-color: rgba(0, 0, 0, 0.4);
-  }
-  &.--valid {
-    box-shadow: 0 0 0 1px rgba(0, 255, 0, 0.4);
-    background-color: rgba(0, 255, 0, 0.05);
-  }
-`;
-
 const DropDownListItem = styled.li`
   list-style: none;
   padding: 8px 8px;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 8px;
   &:hover {
     background-color: rgba(0, 0, 0, 0.4);
+  }
+`;
+
+const TimeInputEndornment = styled.div`
+  position: absolute;
+  right: 4px;
+  height: 36px;
+  width: 36px;
+  z-index: 1;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  &:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  &:active {
+    background: rgba(0, 0, 0, 0.4);
+  }
+`;
+
+const ResultContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  b {
+    color: rgba(255, 255, 255, 0.5);
+    margin-right: 4px;
   }
 `;
 
 export default function App() {
   const [timeInputValue, setTimeInputValue] = useState("");
   const [selectedTimeValue, setSelectedTimeValue] = useState("");
-  const isValid = amPmTimeRegex.test(timeInputValue);
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputContentRef = useRef<HTMLDivElement>(null);
 
-  useClickOutside(inputRef, () => {
+  const isValidAmPmTime = (timeValue: string) =>
+    amPmTimeRegex.test(timeInputValue);
+
+  useClickOutside(inputContentRef, () => {
     setIsDropDownOpen(false);
-    if (!isValid) {
+    if (!timeInputValue) {
+      return setSelectedTimeValue("");
+    }
+    if (!isValidAmPmTime(timeInputValue)) {
       setTimeInputValue(selectedTimeValue);
     }
   });
+
+  const onSelectOption = (timeOption: Moment) => {
+    setTimeInputValue(getUppercasedValue(timeOption.format("hh:mm a")));
+    setIsDropDownOpen(false);
+  };
+
+  const onChangeInputValue = (typedValue: string) => {
+    setTimeInputValue(
+      getFormattedAMPMTimeFromStringValue(typedValue) ?? timeInputValue
+    );
+  };
 
   useEffect(() => {
     if (amPmTimeRegex.test(timeInputValue)) {
@@ -123,7 +146,7 @@ export default function App() {
   const memoizedTimeSelectionSuggestions = useMemo(() => {
     const defaultTimeForSuggestions = moment();
     return getTimeSelectionSuggestions(
-      timeInputValue?.length
+      timeInputValue
         ? moment(timeInputValue, "hh:mm a")
         : defaultTimeForSuggestions
     );
@@ -134,47 +157,34 @@ export default function App() {
 
   return (
     <Container className="App">
-      <InputContainer>
+      <InputContainer ref={inputContentRef}>
         <StyledInput
-          ref={inputRef}
           value={timeInputValue}
           placeholder={moment().format("hh:mm a").toUpperCase()}
-          className={isValid ? "--valid" : ""}
-          onChange={(e) => {
-            setIsDropDownOpen(true);
-            setTimeInputValue(
-              getFormattedAMPMTimeFromStringValue(e.target.value) ??
-                timeInputValue
-            );
-          }}
-          onFocus={() => setIsDropDownOpen(true)}
+          className={isValidAmPmTime(timeInputValue) ? "--valid" : ""}
+          onChange={(event) => onChangeInputValue(event.target.value)}
         />
-        <StyledChevronTriangle
-          className={isDropDownOpenVisible ? "--up" : ""}
-        />
+        <TimeInputEndornment onClick={() => setIsDropDownOpen(!isDropDownOpen)}>
+          <img src={ClockIcon} alt="clock icon" />
+        </TimeInputEndornment>
         <DropDownOptionsContainer
           className={isDropDownOpenVisible ? "--visible" : ""}
         >
           {memoizedTimeSelectionSuggestions.map((timeOption) => (
             <DropDownListItem
               key={timeOption.toString()}
-              onClick={() => {
-                setTimeInputValue(
-                  getUppercasedValue(timeOption.format("hh:mm a"))
-                );
-                setIsDropDownOpen(false);
-              }}
+              onClick={() => onSelectOption(timeOption)}
             >
               {getUppercasedValue(timeOption.format("hh:mm a"))}
             </DropDownListItem>
           ))}
         </DropDownOptionsContainer>
       </InputContainer>
-
-      <br />
       <ResultContainer>
         <b>Moment.js Value:</b>{" "}
-        {moment(timeInputValue, "hh:mm a").format("YYYY-MM-DD HH:mm:ss")}
+        {selectedTimeValue
+          ? moment(selectedTimeValue, "hh:mm a").format("YYYY-MM-DD HH:mm:ss")
+          : "-"}
       </ResultContainer>
     </Container>
   );

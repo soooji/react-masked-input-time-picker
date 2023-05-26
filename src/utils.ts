@@ -72,14 +72,15 @@ export function getFormattedAMPMTimeFromStringValue(inputValue: string) {
 
 // Time suggestions
 const roundUpTimeToNearestHalfHour = (time: Moment) => {
+  const fixedTime = time.clone();
   const minutes = time.minutes();
   if (minutes === 0) {
-    return time;
+    return fixedTime;
   }
   if (minutes <= 30) {
-    return time.set("m", 30);
+    return fixedTime.set("m", 30);
   }
-  return time.clone().add(1, "h").startOf("hour");
+  return fixedTime.add(1, "h").startOf("hour");
 };
 
 export const getTimeSelectionSuggestions = (time: Moment) => {
