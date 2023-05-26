@@ -1,7 +1,11 @@
 import moment, { Moment } from "moment";
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./styles.css";
-import { getFormattedAMPMTimeFromStringValue } from "./utils";
+import {
+  amPmTimeRegex,
+  getFormattedAMPMTimeFromStringValue,
+  getTimeSelectionSuggestions,
+} from "./utils";
 import styled from "styled-components";
 import { useClickOutside } from "./useClickOutside";
 
@@ -95,43 +99,35 @@ const DropDownListItem = styled.li`
 `;
 
 export default function App() {
-  const [val, setVal] = useState("");
-  const regex = /^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/;
-  const isValid = regex.test(val);
+  const [timeInputValue, setTimeInputValue] = useState("");
+  const [selectedTimeValue, setSelectedTimeValue] = useState("");
+  const isValid = amPmTimeRegex.test(timeInputValue);
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useClickOutside(inputRef, () => {
     setIsDropDownOpen(false);
+    if (!isValid) {
+      setTimeInputValue(selectedTimeValue);
+    }
   });
 
-  const getTimeSelectionSuggestions = (time: Moment) => {
-    const sameHourOptions = [];
-    const startOfHour =
-      time.minutes() > 30
-        ? time.clone().add(1, "h").startOf("hour")
-        : time.clone().set("m", 30);
-    const endOfHour = time.clone().add(3, "h").endOf("hour");
-    const intervalMinutes = 30;
-    for (
-      let timeOption = startOfHour;
-      timeOption <= endOfHour;
-      timeOption.add(intervalMinutes, "minutes")
-    ) {
-      sameHourOptions.push(timeOption.format("hh:mm a"));
+  useEffect(() => {
+    if (amPmTimeRegex.test(timeInputValue)) {
+      setSelectedTimeValue(timeInputValue);
     }
-    return sameHourOptions;
-  };
+  }, [timeInputValue]);
 
-  const setUppercasedValue = (value: string) => {
-    setVal(value.toUpperCase());
-  };
+  const getUppercasedValue = (value: string) => value.toUpperCase();
 
   const memoizedTimeSelectionSuggestions = useMemo(() => {
+    const defaultTimeForSuggestions = moment();
     return getTimeSelectionSuggestions(
-      val?.length ? moment(val, "hh:mm a") : moment()
+      timeInputValue?.length
+        ? moment(timeInputValue, "hh:mm a")
+        : defaultTimeForSuggestions
     );
-  }, [val]);
+  }, [timeInputValue]);
 
   const isDropDownOpenVisible =
     memoizedTimeSelectionSuggestions?.length && isDropDownOpen;
@@ -141,12 +137,15 @@ export default function App() {
       <InputContainer>
         <StyledInput
           ref={inputRef}
-          value={val}
+          value={timeInputValue}
           placeholder={moment().format("hh:mm a").toUpperCase()}
           className={isValid ? "--valid" : ""}
           onChange={(e) => {
             setIsDropDownOpen(true);
-            setVal(getFormattedAMPMTimeFromStringValue(e.target.value) ?? val);
+            setTimeInputValue(
+              getFormattedAMPMTimeFromStringValue(e.target.value) ??
+                timeInputValue
+            );
           }}
           onFocus={() => setIsDropDownOpen(true)}
         />
@@ -156,15 +155,17 @@ export default function App() {
         <DropDownOptionsContainer
           className={isDropDownOpenVisible ? "--visible" : ""}
         >
-          {memoizedTimeSelectionSuggestions.map((v) => (
+          {memoizedTimeSelectionSuggestions.map((timeOption) => (
             <DropDownListItem
-              key={v.toString()}
+              key={timeOption.toString()}
               onClick={() => {
-                setUppercasedValue(v);
+                setTimeInputValue(
+                  getUppercasedValue(timeOption.format("hh:mm a"))
+                );
                 setIsDropDownOpen(false);
               }}
             >
-              {v.toUpperCase()}
+              {getUppercasedValue(timeOption.format("hh:mm a"))}
             </DropDownListItem>
           ))}
         </DropDownOptionsContainer>
@@ -172,7 +173,8 @@ export default function App() {
 
       <br />
       <ResultContainer>
-        <b>Moment.js Value:</b> {moment(val, "hh:mm a").format("hh:mm a")}
+        <b>Moment.js Value:</b>{" "}
+        {moment(timeInputValue, "hh:mm a").format("YYYY-MM-DD HH:mm:ss")}
       </ResultContainer>
     </Container>
   );

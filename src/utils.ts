@@ -1,5 +1,9 @@
-const onlyDigitCheckerRegex = new RegExp(/^[0-9]*$/);
+import { Moment } from "moment";
 
+const onlyDigitCheckerRegex = new RegExp(/^[0-9]*$/);
+export const amPmTimeRegex = /^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/;
+
+// Time formating + masking
 const formatHour = (hour: string) => {
   let formattedHour = hour;
   if (hour.length === 1 && parseInt(hour[0]) > 2) {
@@ -65,3 +69,30 @@ export function getFormattedAMPMTimeFromStringValue(inputValue: string) {
 
   return `${hour}${minute ? ":" + minute : ""}${ampm ? " " + ampm : ""}`;
 }
+
+// Time suggestions
+const roundUpTimeToNearestHalfHour = (time: Moment) => {
+  const minutes = time.minutes();
+  if (minutes === 0) {
+    return time;
+  }
+  if (minutes <= 30) {
+    return time.set("m", 30);
+  }
+  return time.clone().add(1, "h").startOf("hour");
+};
+
+export const getTimeSelectionSuggestions = (time: Moment) => {
+  const sameHourOptions = [];
+  const startOfHour = roundUpTimeToNearestHalfHour(time);
+  const endOfHour = startOfHour.clone().add(3, "h");
+  const intervalMinutes = 30;
+  for (
+    let timeOption = startOfHour;
+    timeOption <= endOfHour;
+    timeOption.add(intervalMinutes, "minutes")
+  ) {
+    sameHourOptions.push(timeOption.clone());
+  }
+  return sameHourOptions;
+};
