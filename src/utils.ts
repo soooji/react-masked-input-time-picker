@@ -1,4 +1,4 @@
-import { Moment } from "moment";
+import moment, { Moment } from "moment";
 
 export type TimingFormatType = "12h" | "24h";
 
@@ -6,7 +6,7 @@ const onlyDigitCheckerRegex = new RegExp(/^[0-9]*$/);
 export const amPmTimeRegex = /^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/;
 export const twentyFourHourTimeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
-// Time formating + masking
+// Time formatting + masking
 const formatHour = (hour: string, format: TimingFormatType) => {
   let formattedHour = hour;
   const maxHour = format === "12h" ? 12 : 23;
@@ -47,7 +47,7 @@ const formatAmPm = (ampm: string) => {
   return formattedAmPm;
 };
 
-export function getFormattedAMPMTimeFromStringValue(
+export function getFormattedAmPmTimeFromStringValue(
   inputValue: string,
   format: TimingFormatType = "12h"
 ) {
@@ -81,6 +81,20 @@ export function getFormattedAMPMTimeFromStringValue(
   return `${hour}${minute ? ":" + minute : ""}${ampm ? " " + ampm : ""}`;
 }
 
+// Time validation
+export const isValidTimeFormat = (
+  timeValue: string,
+  { timeFormat }: { timeFormat: TimingFormatType }
+) => {
+  if (!timeValue) {
+    return false;
+  }
+  if (timeFormat === "12h") {
+    return amPmTimeRegex.test(timeValue);
+  }
+  return twentyFourHourTimeRegex.test(timeValue);
+};
+
 // Time suggestions
 const roundUpTimeToNearestHalfHour = (time: Moment) => {
   const fixedTime = time.clone();
@@ -94,17 +108,52 @@ const roundUpTimeToNearestHalfHour = (time: Moment) => {
   return fixedTime.add(1, "h").startOf("hour");
 };
 
+// export const getTimeSelectionSuggestionsBetweenMinAndMaxDate = (
+//   time: Moment,
+//   {
+//     minDate,
+//     maxDate,
+//   }: {
+//     minDate?: Moment;
+//     maxDate?: Moment;
+//   }
+// ) => {
+//   const sameHourOptions = [];
+//   const startTime = roundUpTimeToNearestHalfHour(
+//     minDate ? moment.max(minDate, time) : time
+//   );
+//   const endTime = moment.min(
+//     maxDate.clone().endOf("day"),
+//     startTime.clone().add(3, "h")
+//   );
+//   const intervalMinutes = 30;
+//   for (
+//     let timeOption = startTime;
+//     timeOption <= endTime;
+//     timeOption.add(intervalMinutes, "minutes")
+//   ) {
+//     sameHourOptions.push(timeOption.clone());
+//   }
+//   return sameHourOptions;
+// };
+
 export const getTimeSelectionSuggestions = (time: Moment) => {
   const sameHourOptions = [];
-  const startOfHour = roundUpTimeToNearestHalfHour(time);
-  const endOfHour = startOfHour.clone().add(3, "h");
+  const startTime = roundUpTimeToNearestHalfHour(time);
+  const endTime = moment.min(
+    moment().endOf("day"),
+    startTime.clone().add(3, "h")
+  );
   const intervalMinutes = 30;
   for (
-    let timeOption = startOfHour;
-    timeOption <= endOfHour;
+    let timeOption = startTime;
+    timeOption <= endTime;
     timeOption.add(intervalMinutes, "minutes")
   ) {
     sameHourOptions.push(timeOption.clone());
   }
   return sameHourOptions;
 };
+
+// String
+export const getUppercaseValue = (value: string) => value.toUpperCase();
