@@ -18,6 +18,21 @@ const TIMING_FORMAT_OPTIONS: SelectOption<TimingFormatType>[] = [
   },
 ];
 
+const RoundDarkButtonWithHoverEffect = styled.button`
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+`;
+
 const ResultContainer = styled.div`
   display: flex;
   flex-direction: row;
@@ -34,6 +49,7 @@ export default function App() {
     SelectOption<TimingFormatType>
   >(TIMING_FORMAT_OPTIONS[0]);
   const [selectedTime, setSelectedTime] = useState<Moment>();
+  const [isClicked, setIsClicked] = useState(false);
 
   return (
     <Container className="App">
@@ -41,8 +57,8 @@ export default function App() {
         value={selectedTime}
         onChange={setSelectedTime}
         timingFormat={timingFormat.value}
-        minDate={moment().hour(10).minute(0).second(0)}
-        maxDate={moment().hour(17).minute(0).second(0)}
+        minTime={moment().hour(10).minute(0).second(0)}
+        maxTime={moment().hour(17).minute(0).second(0)}
       />
 
       <InlineSelect
@@ -55,6 +71,9 @@ export default function App() {
         <b>Moment.js Value:</b>{" "}
         {selectedTime ? selectedTime.format("YYYY-MM-DD HH:mm:ss") : "-"}
       </ResultContainer>
+      <RoundDarkButtonWithHoverEffect onClick={() => setIsClicked(!isClicked)}>
+        {isClicked ? "Hide" : "Show"}
+      </RoundDarkButtonWithHoverEffect>
     </Container>
   );
 }

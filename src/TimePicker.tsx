@@ -20,17 +20,17 @@ import { useClickOutside } from "./useClickOutside";
 export interface TimePickerProps {
   value?: Moment | undefined;
   timingFormat?: TimingFormatType;
-  minDate?: Moment;
-  maxDate?: Moment;
+  minTime?: Moment;
+  maxTime?: Moment;
   onChange?: (value: Moment | undefined) => void;
 }
 
-//TODO: Ignore date part of all given and forwarded props
+//TODO: Ignore date part of minTime and maxTime
 export const TimePicker: FC<TimePickerProps> = ({
   value,
   timingFormat = "12h",
-  minDate = moment().startOf("day"),
-  maxDate = moment().endOf("day"),
+  minTime = moment().startOf("day"),
+  maxTime = moment().endOf("day"),
   onChange,
 }) => {
   // Configs
@@ -65,13 +65,13 @@ export const TimePicker: FC<TimePickerProps> = ({
 
   // DropDown
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
-  // TODO: Include minDate and maxDate in suggestions
   const suggestedTimeOptions = useMemo(() => {
     const defaultTimeForSuggestions = moment();
     return getTimeSelectionSuggestions(
       timeInputValue
         ? moment(timeInputValue, momentFormat)
-        : defaultTimeForSuggestions
+        : defaultTimeForSuggestions,
+      { minTime, maxTime }
     );
   }, [timeInputValue, momentFormat]);
   const onSelectSuggestedTime = (timeOption: Moment) => {
@@ -86,8 +86,8 @@ export const TimePicker: FC<TimePickerProps> = ({
     }
     const momentValue = moment(timeValue, momentFormat);
     const isInMinMaxRange =
-      (!minDate || momentValue.isSameOrAfter(minDate, "minute")) &&
-      (!maxDate || momentValue.isSameOrBefore(maxDate, "minute"));
+      (!minTime || momentValue.isSameOrAfter(minTime, "minute")) &&
+      (!maxTime || momentValue.isSameOrBefore(maxTime, "minute"));
     return isInMinMaxRange;
   };
 
