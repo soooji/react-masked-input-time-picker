@@ -99,6 +99,22 @@ export default function App() {
     setMaxTime(newMaxTime);
   };
 
+  const onChangeSelectedTime = (newSelectedTime: Moment | undefined) => {
+    setSelectedTime(newSelectedTime);
+    toast.success(
+      `Selected time: ${
+        newSelectedTime?.format("YYYY-MM-DD HH:mm:ss") ?? "N/A"
+      }`,
+      {
+        style: {
+          borderRadius: "10px",
+          background: "#333",
+          color: "#fff",
+        },
+      }
+    );
+  };
+
   return (
     <Container className="App">
       <Toaster position="bottom-center" />
@@ -121,6 +137,9 @@ export default function App() {
             value={minTime}
             onChange={onChangeMinTime}
             timingFormat={timingFormat.value}
+            timeSuggestionProps={{
+              intervalMinutes: 15,
+            }}
           />
         </div>
 
@@ -131,6 +150,9 @@ export default function App() {
             minTime={minTime ? minTime.clone().add(1, "minute") : undefined}
             onChange={onChangeMaxTime}
             timingFormat={timingFormat.value}
+            timeSuggestionProps={{
+              intervalMinutes: 15,
+            }}
           />
         </div>
       </FlexContainer>
@@ -140,24 +162,13 @@ export default function App() {
           <InputLabel>Time Picker (with constraints):</InputLabel>
           <TimePicker
             value={selectedTime}
-            onChange={(newTime) => {
-              setSelectedTime(newTime);
-              toast.success(
-                `Selected time: ${
-                  newTime?.format("YYYY-MM-DD HH:mm:ss") ?? "N/A"
-                }`,
-                {
-                  style: {
-                    borderRadius: "10px",
-                    background: "#333",
-                    color: "#fff",
-                  },
-                }
-              );
-            }}
-            timingFormat={timingFormat.value}
+            onChange={onChangeSelectedTime}
             minTime={minTime}
             maxTime={maxTime}
+            timingFormat={timingFormat.value}
+            timeSuggestionProps={{
+              intervalMinutes: 30,
+            }}
           />
         </div>
       </FlexContainer>

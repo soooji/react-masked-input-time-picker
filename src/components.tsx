@@ -59,6 +59,22 @@ export const DropDownOptionsContainer = styled.div`
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.2);
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
   &.--visible {
     transform: translateY(0px);
     visibility: visible;

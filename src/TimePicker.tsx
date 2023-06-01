@@ -1,18 +1,12 @@
 import moment, { Moment } from "moment";
-import {
-  FC,
-  MouseEventHandler,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import "./styles.css";
 import {
   getFormattedAmPmTimeFromStringValue,
   getTimeSelectionSuggestions,
   getUppercaseValue,
   isValidTimeFormat,
+  TimeSelectionSuggestionProps,
   TimingFormatType,
 } from "./utils";
 import {
@@ -29,15 +23,19 @@ export interface TimePickerProps {
   timingFormat?: TimingFormatType;
   minTime?: Moment;
   maxTime?: Moment;
+  timeSuggestionProps?: Omit<
+    TimeSelectionSuggestionProps,
+    "fromTime" | "toTime"
+  >;
   onChange?: (value: Moment | undefined) => void;
 }
 
-//TODO: Ignore date part of minTime and maxTime
 export const TimePicker: FC<TimePickerProps> = ({
   value,
   timingFormat = "12h",
   minTime = moment().startOf("day"),
   maxTime = moment().endOf("day"),
+  timeSuggestionProps = {},
   onChange,
 }) => {
   // FIxing passed time constraints not to have seconds
@@ -99,15 +97,15 @@ export const TimePicker: FC<TimePickerProps> = ({
   // DropDown
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
 
-  const suggestedTimeOptions = useMemo(() => {
-    const defaultTimeForSuggestions = moment();
-    return getTimeSelectionSuggestions(
-      timeInputValue
-        ? moment(timeInputValue, momentFormat)
-        : defaultTimeForSuggestions,
-      timeConstraintsWithoutSeconds
-    );
-  }, [timeInputValue, momentFormat, timeConstraintsWithoutSeconds, maxTime]);
+  const suggestedTimeOptions = useMemo(
+    () =>
+      getTimeSelectionSuggestions({
+        ...timeSuggestionProps,
+        fromTime: timeConstraintsWithoutSeconds.minTime,
+        toTime: timeConstraintsWithoutSeconds.maxTime,
+      }),
+    [timeInputValue, momentFormat, timeConstraintsWithoutSeconds, maxTime]
+  );
 
   const onSelectSuggestedTime = (timeOption: Moment) => {
     setIsDropDownOpen(false);

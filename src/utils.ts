@@ -108,30 +108,33 @@ const roundUpTimeToNearestHalfHour = (time: Moment) => {
   return fixedTime.add(1, "h").startOf("hour");
 };
 
-export const getTimeSelectionSuggestions = (
-  time: Moment,
-  {
-    minTime,
-    maxTime,
-  }: {
-    minTime?: Moment;
-    maxTime?: Moment;
-  }
-) => {
+export type TimeSelectionSuggestionProps = {
+  fromTime?: Moment;
+  toTime?: Moment;
+  maxTimeGapInHours?: number;
+  intervalMinutes?: number;
+};
+export const getTimeSelectionSuggestions = ({
+  fromTime: minTime,
+  toTime: maxTime,
+  maxTimeGapInHours,
+  intervalMinutes = 30,
+}: TimeSelectionSuggestionProps) => {
   const sameHourOptions = [];
   const startTime = roundUpTimeToNearestHalfHour(
-    minTime ? moment.max(time, minTime) : time
+    minTime
+      ? moment.max(moment().startOf("day"), minTime)
+      : moment().startOf("day")
   ).set("seconds", 0);
   const endTime = moment
     .min(
       ...[
         moment().endOf("day"),
-        startTime.clone().add(3, "h"),
+        ...(maxTimeGapInHours ? [startTime.clone().add(3, "h")] : []),
         ...(maxTime ? [maxTime] : []),
       ]
     )
     .set("seconds", 0);
-  const intervalMinutes = 30;
   for (
     let timeOption = startTime;
     timeOption <= endTime;
