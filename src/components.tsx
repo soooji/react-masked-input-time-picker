@@ -3,8 +3,8 @@ import styled from "styled-components";
 export const Container = styled.div`
   display: flex;
   align-items: center;
-  flex-direction: column-reverse;
-  gap: 12px;
+  flex-direction: column;
+  gap: 24px;
   &,
   * {
     color: white;
@@ -14,9 +14,11 @@ export const Container = styled.div`
 export const InputContainer = styled.div`
   position: relative;
   display: block;
+  width: 100%;
 `;
 
 export const StyledInput = styled.input`
+  width: 100%;
   border: 1px solid black;
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 12px;
@@ -30,10 +32,15 @@ export const StyledInput = styled.input`
     box-shadow: 0 0 0 1px rgba(0, 255, 0, 0.4);
     background-color: rgba(0, 255, 0, 0.05);
   }
+  &.--invalid {
+    box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.4);
+    background-color: rgba(255, 0, 0, 0.05);
+  }
 `;
 
 export const DropDownOptionsContainer = styled.div`
   position: absolute;
+  width: 100%;
   top: calc(100% + 4px);
   left: 0;
   right: 0;
@@ -41,7 +48,7 @@ export const DropDownOptionsContainer = styled.div`
   border-radius: 12px;
   border: 1px solid black;
   padding: 4px;
-  z-index: 1;
+  z-index: 11;
   visibility: hidden;
   opacity: 0;
   transform: translateY(10px);

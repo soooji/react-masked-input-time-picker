@@ -1,5 +1,12 @@
 import moment, { Moment } from "moment";
-import { FC, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  MouseEventHandler,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "./styles.css";
 import {
   getFormattedAmPmTimeFromStringValue,
@@ -46,14 +53,27 @@ export const TimePicker: FC<TimePickerProps> = ({
   // Refs
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const adornmentRef = useRef<HTMLDivElement>(null);
 
   // Value and onChange
   const [timeInputValue, setTimeInputValue] = useState("");
+
   const onChangeInputValue = (typedValue: string) => {
     setTimeInputValue(
       getFormattedAmPmTimeFromStringValue(typedValue, timingFormat) ??
         timeInputValue
     );
+  };
+
+  const isSameTimeAsValue = (internalTimeValue: Moment | undefined) =>
+    (!value && !internalTimeValue) ||
+    (value && internalTimeValue && value.isSame(internalTimeValue, "minute"));
+
+  const onChangeValueIfChanged = (momentValue: Moment | undefined) => {
+    if (isSameTimeAsValue(momentValue)) {
+      return;
+    }
+    onChange?.(momentValue);
   };
 
   // Effects
@@ -65,6 +85,7 @@ export const TimePicker: FC<TimePickerProps> = ({
 
   // DropDown
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
+
   const suggestedTimeOptions = useMemo(() => {
     const defaultTimeForSuggestions = moment();
     return getTimeSelectionSuggestions(
@@ -73,10 +94,11 @@ export const TimePicker: FC<TimePickerProps> = ({
         : defaultTimeForSuggestions,
       { minTime, maxTime }
     );
-  }, [timeInputValue, momentFormat]);
+  }, [timeInputValue, momentFormat, minTime, maxTime]);
+
   const onSelectSuggestedTime = (timeOption: Moment) => {
     setIsDropDownOpen(false);
-    onChange?.(timeOption);
+    onChangeValueIfChanged?.(timeOption);
   };
 
   // Validations
@@ -93,12 +115,12 @@ export const TimePicker: FC<TimePickerProps> = ({
 
   const validateTimeAndOnChange = () => {
     if (!timeInputValue) {
-      return onChange?.(undefined);
+      return onChangeValueIfChanged?.(undefined);
     }
     if (!isValidTime(timeInputValue)) {
       return setTimeInputValue(getUppercaseValue(defaultValue));
     }
-    onChange?.(moment(timeInputValue, momentFormat));
+    onChangeValueIfChanged?.(moment(timeInputValue, momentFormat));
   };
 
   const openDropDownAndFocusOnInput = () => {
@@ -114,24 +136,35 @@ export const TimePicker: FC<TimePickerProps> = ({
   const isDropDownOpenVisible = suggestedTimeOptions?.length && isDropDownOpen;
 
   return (
-    <InputContainer ref={containerRef} onBlur={() => validateTimeAndOnChange()}>
+    <InputContainer ref={containerRef}>
       <StyledInput
         ref={inputRef}
         value={timeInputValue}
         placeholder={moment().format(momentFormat).toUpperCase()}
-        className={isValidTime(timeInputValue) ? "--valid" : ""}
+        onBlur={validateTimeAndOnChange}
+        className={
+          isValidTime(timeInputValue)
+            ? "--valid"
+            : isValidTimeFormat(timeInputValue, { timeFormat: timingFormat })
+            ? "--invalid"
+            : ""
+        }
         onChange={(event) => onChangeInputValue(event.target.value)}
       />
 
       <TimeInputAdornment
+        ref={adornmentRef}
         onClick={openDropDownAndFocusOnInput}
-        id="time-input-adornment"
+        onMouseDown={(e) => e.preventDefault()}
+        onTouchStart={(e) => e.preventDefault()}
       >
         <img src="/clock.svg" alt="clock icon" />
       </TimeInputAdornment>
 
       <DropDownOptionsContainer
         className={isDropDownOpenVisible ? "--visible" : ""}
+        onMouseDown={(e) => e.preventDefault()}
+        onTouchStart={(e) => e.preventDefault()}
       >
         {suggestedTimeOptions.map((timeOption) => (
           <DropDownListItem

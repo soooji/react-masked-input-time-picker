@@ -13,7 +13,7 @@ const formatHour = (hour: string, format: TimingFormatType) => {
   if (hour.length === 1 && parseInt(hour[0]) > Math.floor(maxHour / 10)) {
     formattedHour = `0${hour[0]}`;
   } else if (hour.length === 2) {
-    if (Number(hour) === 0) {
+    if (Number(hour) === 0 && format === "12h") {
       formattedHour = `01`;
     } else if (Number(hour) > maxHour) {
       formattedHour = `${maxHour}`;
@@ -107,35 +107,6 @@ const roundUpTimeToNearestHalfHour = (time: Moment) => {
   }
   return fixedTime.add(1, "h").startOf("hour");
 };
-
-// export const getTimeSelectionSuggestionsBetweenMinAndMaxDate = (
-//   time: Moment,
-//   {
-//     minDate,
-//     maxDate,
-//   }: {
-//     minDate?: Moment;
-//     maxDate?: Moment;
-//   }
-// ) => {
-//   const sameHourOptions = [];
-//   const startTime = roundUpTimeToNearestHalfHour(
-//     minDate ? moment.max(minDate, time) : time
-//   );
-//   const endTime = moment.min(
-//     maxDate.clone().endOf("day"),
-//     startTime.clone().add(3, "h")
-//   );
-//   const intervalMinutes = 30;
-//   for (
-//     let timeOption = startTime;
-//     timeOption <= endTime;
-//     timeOption.add(intervalMinutes, "minutes")
-//   ) {
-//     sameHourOptions.push(timeOption.clone());
-//   }
-//   return sameHourOptions;
-// };
 
 export const getTimeSelectionSuggestions = (
   time: Moment,

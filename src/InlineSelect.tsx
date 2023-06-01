@@ -6,6 +6,7 @@ export type SelectOption<TValue extends string = string> = {
 };
 
 export type InlineSelectProps<TOptionValue extends string = string> = {
+  style?: React.CSSProperties;
   value?: SelectOption<TOptionValue>;
   options: SelectOption<TOptionValue>[];
   onChange: (value: SelectOption<TOptionValue>) => void;
@@ -31,9 +32,9 @@ const Option = styled.div`
   }
 `;
 
-export const InlineSelect = (({ value, options, onChange }) => {
+export const InlineSelect = (({ value, options, onChange, style }) => {
   return (
-    <Container>
+    <Container style={style}>
       {options?.map((option) => (
         <Option
           key={option.value}
