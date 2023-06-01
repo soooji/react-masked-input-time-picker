@@ -4,10 +4,16 @@ export const Container = styled.div`
   display: flex;
   align-items: center;
   flex-direction: column;
+  justify-content: center;
   gap: 24px;
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  min-height: 100vh;
   &,
   * {
     color: white;
+    box-sizing: border-box;
   }
 `;
 

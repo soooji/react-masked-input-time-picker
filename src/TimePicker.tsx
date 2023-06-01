@@ -40,6 +40,19 @@ export const TimePicker: FC<TimePickerProps> = ({
   maxTime = moment().endOf("day"),
   onChange,
 }) => {
+  // FIxing passed time constraints not to have seconds
+  const timeConstraintsWithoutSeconds = useMemo(
+    () => ({
+      minTime: minTime
+        ? moment(`${minTime.hour()}:${minTime.minute()}:00`, "H:mm:ss")
+        : undefined,
+      maxTime: maxTime
+        ? moment(`${maxTime.hour()}:${maxTime.minute()}:00`, "H:mm:ss")
+        : undefined,
+    }),
+    [minTime, maxTime]
+  );
+
   // Configs
   const momentFormat = useMemo(
     () => (timingFormat === "12h" ? "hh:mm a" : "HH:mm"),
@@ -73,7 +86,7 @@ export const TimePicker: FC<TimePickerProps> = ({
     if (isSameTimeAsValue(momentValue)) {
       return;
     }
-    onChange?.(momentValue);
+    onChange?.(momentValue?.clone()?.set("seconds", 0));
   };
 
   // Effects
@@ -92,9 +105,9 @@ export const TimePicker: FC<TimePickerProps> = ({
       timeInputValue
         ? moment(timeInputValue, momentFormat)
         : defaultTimeForSuggestions,
-      { minTime, maxTime }
+      timeConstraintsWithoutSeconds
     );
-  }, [timeInputValue, momentFormat, minTime, maxTime]);
+  }, [timeInputValue, momentFormat, timeConstraintsWithoutSeconds, maxTime]);
 
   const onSelectSuggestedTime = (timeOption: Moment) => {
     setIsDropDownOpen(false);
@@ -108,8 +121,16 @@ export const TimePicker: FC<TimePickerProps> = ({
     }
     const momentValue = moment(timeValue, momentFormat);
     const isInMinMaxRange =
-      (!minTime || momentValue.isSameOrAfter(minTime, "minute")) &&
-      (!maxTime || momentValue.isSameOrBefore(maxTime, "minute"));
+      (!timeConstraintsWithoutSeconds.minTime ||
+        momentValue.isSameOrAfter(
+          timeConstraintsWithoutSeconds.minTime,
+          "minute"
+        )) &&
+      (!timeConstraintsWithoutSeconds.maxTime ||
+        momentValue.isSameOrBefore(
+          timeConstraintsWithoutSeconds.maxTime,
+          "minute"
+        ));
     return isInMinMaxRange;
   };
 

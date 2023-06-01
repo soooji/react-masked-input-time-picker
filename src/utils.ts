@@ -121,14 +121,16 @@ export const getTimeSelectionSuggestions = (
   const sameHourOptions = [];
   const startTime = roundUpTimeToNearestHalfHour(
     minTime ? moment.max(time, minTime) : time
-  );
-  const endTime = moment.min(
-    ...[
-      moment().endOf("day"),
-      startTime.clone().add(3, "h"),
-      ...(maxTime ? [maxTime] : []),
-    ]
-  );
+  ).set("seconds", 0);
+  const endTime = moment
+    .min(
+      ...[
+        moment().endOf("day"),
+        startTime.clone().add(3, "h"),
+        ...(maxTime ? [maxTime] : []),
+      ]
+    )
+    .set("seconds", 0);
   const intervalMinutes = 30;
   for (
     let timeOption = startTime;

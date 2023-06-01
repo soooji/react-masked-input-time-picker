@@ -18,18 +18,6 @@ const TIMING_FORMAT_OPTIONS: SelectOption<TimingFormatType>[] = [
     label: "24h",
   },
 ];
-
-const ResultContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.9);
-  b {
-    color: rgba(255, 255, 255, 0.5);
-    margin-right: 4px;
-  }
-`;
-
 const InputLabel = styled.div`
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
@@ -49,6 +37,30 @@ const FlexContainer = styled.div<{ width?: string }>`
   }
 `;
 
+const CalendarLikeTimeCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  > hr {
+    width: 100%;
+    margin: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  > div {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    > span {
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+`;
+
 const PageTitle = styled.h1`
   font-size: 24px;
   font-weight: 500;
@@ -64,11 +76,34 @@ export default function App() {
   const [minTime, setMinTime] = useState<Moment>();
   const [maxTime, setMaxTime] = useState<Moment>();
 
+  const onChangeMinTime = (newMinTime: Moment | undefined) => {
+    if ((!newMinTime && !minTime) || newMinTime?.isSame(minTime)) {
+      return;
+    }
+    if (newMinTime && selectedTime?.isBefore(newMinTime)) {
+      setSelectedTime(undefined);
+    }
+    setMinTime(newMinTime);
+    if (newMinTime && maxTime && newMinTime.isSameOrAfter(maxTime)) {
+      setMaxTime(undefined);
+    }
+  };
+
+  const onChangeMaxTime = (newMaxTime: Moment | undefined) => {
+    if ((!newMaxTime && !maxTime) || newMaxTime?.isSame(maxTime)) {
+      return;
+    }
+    if (newMaxTime && selectedTime?.isAfter(newMaxTime)) {
+      setSelectedTime(undefined);
+    }
+    setMaxTime(newMaxTime);
+  };
+
   return (
     <Container className="App">
-      <Toaster />
+      <Toaster position="bottom-center" />
 
-      <FlexContainer width="400px">
+      <FlexContainer style={{ marginBottom: "16px" }}>
         <PageTitle>Time Picker</PageTitle>
 
         <InlineSelect
@@ -79,18 +114,12 @@ export default function App() {
         />
       </FlexContainer>
 
-      <FlexContainer width="400px">
+      <FlexContainer>
         <div>
           <InputLabel>Min Time</InputLabel>
           <TimePicker
             value={minTime}
-            onChange={(newMinTime) => {
-              if ((!newMinTime && !minTime) || newMinTime?.isSame(minTime))
-                return;
-              setSelectedTime(undefined);
-              setMinTime(newMinTime);
-              setMaxTime(undefined);
-            }}
+            onChange={onChangeMinTime}
             timingFormat={timingFormat.value}
           />
         </div>
@@ -100,18 +129,13 @@ export default function App() {
           <TimePicker
             value={maxTime}
             minTime={minTime ? minTime.clone().add(1, "minute") : undefined}
-            onChange={(newMaxTime) => {
-              if ((!newMaxTime && !maxTime) || newMaxTime?.isSame(maxTime))
-                return;
-              setSelectedTime(undefined);
-              setMaxTime(newMaxTime);
-            }}
+            onChange={onChangeMaxTime}
             timingFormat={timingFormat.value}
           />
         </div>
       </FlexContainer>
 
-      <FlexContainer width="400px">
+      <FlexContainer>
         <div>
           <InputLabel>Time Picker (with constraints):</InputLabel>
           <TimePicker
@@ -138,10 +162,22 @@ export default function App() {
         </div>
       </FlexContainer>
 
-      <ResultContainer>
-        <b>Moment.js Value:</b>{" "}
-        {selectedTime ? selectedTime.format("YYYY-MM-DD HH:mm:ss") : "-"}
-      </ResultContainer>
+      <CalendarLikeTimeCard>
+        <div>
+          <span>Min Time:</span>
+          {minTime ? minTime.format("YYYY-MM-DD HH:mm:ss") : "N/A"}
+        </div>
+        <hr />
+        <div>
+          <span>Max Time:</span>
+          {maxTime ? maxTime.format("YYYY-MM-DD HH:mm:ss") : "N/A"}
+        </div>
+        <hr />
+        <div>
+          <span>Selected Value:</span>
+          {selectedTime ? selectedTime.format("YYYY-MM-DD HH:mm:ss") : "N/A"}
+        </div>
+      </CalendarLikeTimeCard>
     </Container>
   );
 }
