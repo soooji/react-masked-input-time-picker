@@ -1,4 +1,15 @@
-import moment, { Moment } from "moment";
+import dayjs, { Dayjs } from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import minMax from "dayjs/plugin/minMax";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import advancedFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(advancedFormat);
+dayjs.extend(customParseFormat);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(minMax);
 
 export type TimingFormatType = "12h" | "24h";
 
@@ -96,9 +107,9 @@ export const isValidTimeFormat = (
 };
 
 // Time suggestions
-const roundUpTimeToNearestHalfHour = (time: Moment) => {
+const roundUpTimeToNearestHalfHour = (time: Dayjs) => {
   const fixedTime = time.clone();
-  const minutes = time.minutes();
+  const minutes = time.minute();
   if (minutes === 0) {
     return fixedTime;
   }
@@ -109,8 +120,8 @@ const roundUpTimeToNearestHalfHour = (time: Moment) => {
 };
 
 export type TimeSelectionSuggestionProps = {
-  fromTime?: Moment;
-  toTime?: Moment;
+  fromTime?: Dayjs;
+  toTime?: Dayjs;
   maxTimeGapInHours?: number;
   intervalMinutes?: number;
 };
@@ -120,30 +131,40 @@ export const getTimeSelectionSuggestions = ({
   maxTimeGapInHours,
   intervalMinutes = 30,
 }: TimeSelectionSuggestionProps) => {
-  const sameHourOptions = [];
   const startTime = roundUpTimeToNearestHalfHour(
     minTime
-      ? moment.max(moment().startOf("day"), minTime)
-      : moment().startOf("day")
+      ? dayjs.max(dayjs().startOf("day"), minTime)
+      : dayjs().startOf("day")
   ).set("seconds", 0);
-  const endTime = moment
+  const endTime = dayjs
     .min(
       ...[
-        moment().endOf("day"),
+        dayjs().endOf("day"),
         ...(maxTimeGapInHours ? [startTime.clone().add(3, "h")] : []),
         ...(maxTime ? [maxTime] : []),
       ]
     )
     .set("seconds", 0);
+
+  const timeSuggestionOptions: Dayjs[] = [];
   for (
-    let timeOption = startTime;
-    timeOption <= endTime;
-    timeOption.add(intervalMinutes, "minutes")
+    let timeOption = startTime.clone();
+    timeOption.isSameOrBefore(endTime);
+    timeOption = timeOption.add(intervalMinutes, "minutes")
   ) {
-    sameHourOptions.push(timeOption.clone());
+    timeSuggestionOptions.push(timeOption.clone());
   }
-  return sameHourOptions;
+  return timeSuggestionOptions;
 };
+
+export const getTodayWithTime = (timeString: string, timeFormat: string) => {
+  return dayjs(
+    `${dayjs().format("YYYY-MM-DD")} ${timeString}`,
+    `YYYY-MM-DD ${timeFormat}}`
+  );
+};
+
+console.log(getTodayWithTime("12:45", "HH:mm").format("YYYY-MM-DD HH:mm"));
 
 // String
 export const getUppercaseValue = (value: string) => value.toUpperCase();

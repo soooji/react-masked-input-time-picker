@@ -1,4 +1,3 @@
-import { Moment } from "moment";
 import { useState } from "react";
 import "./styles.css";
 import { TimingFormatType } from "./utils";
@@ -7,6 +6,7 @@ import { InlineSelect, SelectOption } from "./InlineSelect";
 import { Container } from "./components";
 import { TimePicker } from "./TimePicker";
 import { Toaster, toast } from "react-hot-toast";
+import dayjs, { Dayjs } from "dayjs";
 
 const TIMING_FORMAT_OPTIONS: SelectOption<TimingFormatType>[] = [
   {
@@ -72,11 +72,11 @@ export default function App() {
   const [timingFormat, setTimingFormat] = useState<
     SelectOption<TimingFormatType>
   >(TIMING_FORMAT_OPTIONS[1]);
-  const [selectedTime, setSelectedTime] = useState<Moment>();
-  const [minTime, setMinTime] = useState<Moment>();
-  const [maxTime, setMaxTime] = useState<Moment>();
+  const [selectedTime, setSelectedTime] = useState<Dayjs>();
+  const [minTime, setMinTime] = useState<Dayjs>();
+  const [maxTime, setMaxTime] = useState<Dayjs>();
 
-  const onChangeMinTime = (newMinTime: Moment | undefined) => {
+  const onChangeMinTime = (newMinTime: Dayjs | undefined) => {
     if ((!newMinTime && !minTime) || newMinTime?.isSame(minTime)) {
       return;
     }
@@ -89,7 +89,7 @@ export default function App() {
     }
   };
 
-  const onChangeMaxTime = (newMaxTime: Moment | undefined) => {
+  const onChangeMaxTime = (newMaxTime: Dayjs | undefined) => {
     if ((!newMaxTime && !maxTime) || newMaxTime?.isSame(maxTime)) {
       return;
     }
@@ -99,7 +99,7 @@ export default function App() {
     setMaxTime(newMaxTime);
   };
 
-  const onChangeSelectedTime = (newSelectedTime: Moment | undefined) => {
+  const onChangeSelectedTime = (newSelectedTime: Dayjs | undefined) => {
     setSelectedTime(newSelectedTime);
     toast.success(
       `Selected time: ${

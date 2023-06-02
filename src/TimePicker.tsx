@@ -1,9 +1,9 @@
-import moment, { Moment } from "moment";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 import "./styles.css";
 import {
   getFormattedAmPmTimeFromStringValue,
   getTimeSelectionSuggestions,
+  getTodayWithTime,
   getUppercaseValue,
   isValidTimeFormat,
   TimeSelectionSuggestionProps,
@@ -17,39 +17,41 @@ import {
   TimeInputAdornment,
 } from "./components";
 import { useClickOutside } from "./useClickOutside";
+import dayjs, { Dayjs } from "dayjs";
 
 export interface TimePickerProps {
-  value?: Moment | undefined;
+  value?: Dayjs | undefined;
   timingFormat?: TimingFormatType;
-  minTime?: Moment;
-  maxTime?: Moment;
+  minTime?: Dayjs;
+  maxTime?: Dayjs;
   timeSuggestionProps?: Omit<
     TimeSelectionSuggestionProps,
     "fromTime" | "toTime"
   >;
-  onChange?: (value: Moment | undefined) => void;
+  onChange?: (value: Dayjs | undefined) => void;
 }
 
 export const TimePicker: FC<TimePickerProps> = ({
   value,
   timingFormat = "12h",
-  minTime = moment().startOf("day"),
-  maxTime = moment().endOf("day"),
+  minTime = dayjs().hour(0).minute(0).second(0),
+  maxTime = dayjs().hour(23).minute(59).second(0),
   timeSuggestionProps = {},
   onChange,
 }) => {
-  // FIxing passed time constraints not to have seconds
-  const timeConstraintsWithoutSeconds = useMemo(
-    () => ({
+  const getTodayUpdateTimeWithDate = (t: Dayjs) =>
+    t ? dayjs().hour(t.hour()).minute(t.minute()).second(0) : undefined;
+
+  const timeConstraintsWithoutSeconds = useMemo(() => {
+    return {
       minTime: minTime
-        ? moment(`${minTime.hour()}:${minTime.minute()}:00`, "H:mm:ss")
-        : undefined,
+        ? getTodayUpdateTimeWithDate(minTime)
+        : dayjs().hour(0).minute(0).second(0),
       maxTime: maxTime
-        ? moment(`${maxTime.hour()}:${maxTime.minute()}:00`, "H:mm:ss")
-        : undefined,
-    }),
-    [minTime, maxTime]
-  );
+        ? getTodayUpdateTimeWithDate(maxTime)
+        : dayjs().hour(23).minute(59).second(0),
+    };
+  }, [minTime, maxTime]);
 
   // Configs
   const momentFormat = useMemo(
@@ -76,11 +78,11 @@ export const TimePicker: FC<TimePickerProps> = ({
     );
   };
 
-  const isSameTimeAsValue = (internalTimeValue: Moment | undefined) =>
+  const isSameTimeAsValue = (internalTimeValue: Dayjs | undefined) =>
     (!value && !internalTimeValue) ||
     (value && internalTimeValue && value.isSame(internalTimeValue, "minute"));
 
-  const onChangeValueIfChanged = (momentValue: Moment | undefined) => {
+  const onChangeValueIfChanged = (momentValue: Dayjs | undefined) => {
     if (isSameTimeAsValue(momentValue)) {
       return;
     }
@@ -101,13 +103,13 @@ export const TimePicker: FC<TimePickerProps> = ({
     () =>
       getTimeSelectionSuggestions({
         ...timeSuggestionProps,
-        fromTime: timeConstraintsWithoutSeconds.minTime,
-        toTime: timeConstraintsWithoutSeconds.maxTime,
+        fromTime: minTime,
+        toTime: maxTime,
       }),
-    [timeInputValue, momentFormat, timeConstraintsWithoutSeconds, maxTime]
+    [timeConstraintsWithoutSeconds, timeSuggestionProps]
   );
 
-  const onSelectSuggestedTime = (timeOption: Moment) => {
+  const onSelectSuggestedTime = (timeOption: Dayjs) => {
     setIsDropDownOpen(false);
     onChangeValueIfChanged?.(timeOption);
   };
@@ -117,18 +119,16 @@ export const TimePicker: FC<TimePickerProps> = ({
     if (!isValidTimeFormat(timeValue, { timeFormat: timingFormat })) {
       return false;
     }
-    const momentValue = moment(timeValue, momentFormat);
+    const momentValue = getTodayWithTime(timeValue, momentFormat);
     const isInMinMaxRange =
-      (!timeConstraintsWithoutSeconds.minTime ||
-        momentValue.isSameOrAfter(
-          timeConstraintsWithoutSeconds.minTime,
-          "minute"
-        )) &&
-      (!timeConstraintsWithoutSeconds.maxTime ||
-        momentValue.isSameOrBefore(
-          timeConstraintsWithoutSeconds.maxTime,
-          "minute"
-        ));
+      momentValue.isSameOrAfter(
+        timeConstraintsWithoutSeconds.minTime,
+        "minute"
+      ) &&
+      momentValue.isSameOrBefore(
+        timeConstraintsWithoutSeconds.maxTime,
+        "minute"
+      );
     return isInMinMaxRange;
   };
 
@@ -139,7 +139,7 @@ export const TimePicker: FC<TimePickerProps> = ({
     if (!isValidTime(timeInputValue)) {
       return setTimeInputValue(getUppercaseValue(defaultValue));
     }
-    onChangeValueIfChanged?.(moment(timeInputValue, momentFormat));
+    onChangeValueIfChanged?.(getTodayWithTime(timeInputValue, momentFormat));
   };
 
   const openDropDownAndFocusOnInput = () => {
@@ -159,7 +159,7 @@ export const TimePicker: FC<TimePickerProps> = ({
       <StyledInput
         ref={inputRef}
         value={timeInputValue}
-        placeholder={moment().format(momentFormat).toUpperCase()}
+        placeholder={dayjs().format(momentFormat).toUpperCase()}
         onBlur={validateTimeAndOnChange}
         className={
           isValidTime(timeInputValue)
