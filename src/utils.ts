@@ -11,14 +11,14 @@ dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(minMax);
 
-export type TimingFormatType = "12h" | "24h";
+export type ClockSystemType = "12h" | "24h";
 
 const onlyDigitCheckerRegex = new RegExp(/^[0-9]*$/);
 export const amPmTimeRegex = /^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/;
 export const twentyFourHourTimeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
 // Time formatting + masking
-const formatHour = (hour: string, format: TimingFormatType) => {
+const formatHour = (hour: string, format: ClockSystemType) => {
   let formattedHour = hour;
   const maxHour = format === "12h" ? 12 : 23;
   if (hour.length === 1 && parseInt(hour[0]) > Math.floor(maxHour / 10)) {
@@ -60,7 +60,7 @@ const formatAmPm = (ampm: string) => {
 
 export function getFormattedAmPmTimeFromStringValue(
   inputValue: string,
-  format: TimingFormatType = "12h"
+  format: ClockSystemType = "12h"
 ) {
   if (inputValue === "") return "";
   const cleanedTimeValue = inputValue
@@ -93,14 +93,14 @@ export function getFormattedAmPmTimeFromStringValue(
 }
 
 // Time validation
-export const isValidTimeFormat = (
+export const isValidTimeString = (
   timeValue: string,
-  { timeFormat }: { timeFormat: TimingFormatType }
+  { clockSystem }: { clockSystem: ClockSystemType }
 ) => {
   if (!timeValue) {
     return false;
   }
-  if (timeFormat === "12h") {
+  if (clockSystem === "12h") {
     return amPmTimeRegex.test(timeValue);
   }
   return twentyFourHourTimeRegex.test(timeValue);
@@ -157,14 +157,34 @@ export const getTimeSelectionSuggestions = ({
   return timeSuggestionOptions;
 };
 
-export const getTodayWithTime = (timeString: string, timeFormat: string) => {
-  return dayjs(
-    `${dayjs().format("YYYY-MM-DD")} ${timeString}`,
-    `YYYY-MM-DD ${timeFormat}}`
-  );
+export const getDateWithSameTimeForToday = (t: Dayjs) => {
+  return dayjs().hour(t.hour()).minute(t.minute()).second(0);
 };
 
-console.log(getTodayWithTime("12:45", "HH:mm").format("YYYY-MM-DD HH:mm"));
+export const getTimeStringFormat = (clockSystem: ClockSystemType) =>
+  clockSystem === "12h" ? "hh:mm A" : "HH:mm";
+
+export const isValidAndInRangeTimeString = (
+  timeValue: string,
+  options: {
+    minTime: Dayjs;
+    maxTime: Dayjs;
+    clockSystem: ClockSystemType;
+  }
+) => {
+  const { minTime, maxTime, clockSystem } = options;
+  if (!isValidTimeString(timeValue, { clockSystem })) {
+    return false;
+  }
+  const todaysTimeValue = getDateWithSameTimeForToday(
+    dayjs(timeValue, getTimeStringFormat(clockSystem))
+  );
+  const isInMinMaxRange =
+    todaysTimeValue.isSameOrAfter(minTime, "minute") &&
+    todaysTimeValue.isSameOrBefore(maxTime, "minute");
+
+  return isInMinMaxRange;
+};
 
 // String
 export const getUppercaseValue = (value: string) => value.toUpperCase();

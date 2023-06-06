@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./styles.css";
-import { TimingFormatType } from "./utils";
+import { ClockSystemType } from "./utils";
 import styled from "styled-components";
 import { InlineSelect, SelectOption } from "./InlineSelect";
 import { Container } from "./components";
@@ -8,7 +8,7 @@ import { TimePicker } from "./TimePicker";
 import { Toaster, toast } from "react-hot-toast";
 import dayjs, { Dayjs } from "dayjs";
 
-const TIMING_FORMAT_OPTIONS: SelectOption<TimingFormatType>[] = [
+const TIMING_FORMAT_OPTIONS: SelectOption<ClockSystemType>[] = [
   {
     value: "12h",
     label: "12h",
@@ -70,7 +70,7 @@ const PageTitle = styled.h1`
 
 export default function App() {
   const [timingFormat, setTimingFormat] = useState<
-    SelectOption<TimingFormatType>
+    SelectOption<ClockSystemType>
   >(TIMING_FORMAT_OPTIONS[1]);
   const [selectedTime, setSelectedTime] = useState<Dayjs>();
   const [minTime, setMinTime] = useState<Dayjs>();
@@ -136,7 +136,7 @@ export default function App() {
           <TimePicker
             value={minTime}
             onChange={onChangeMinTime}
-            timingFormat={timingFormat.value}
+            clockSystem={timingFormat.value}
             timeSuggestionProps={{
               intervalMinutes: 15,
             }}
@@ -149,7 +149,7 @@ export default function App() {
             value={maxTime}
             minTime={minTime ? minTime.clone().add(1, "minute") : undefined}
             onChange={onChangeMaxTime}
-            timingFormat={timingFormat.value}
+            clockSystem={timingFormat.value}
             timeSuggestionProps={{
               intervalMinutes: 15,
             }}
@@ -165,7 +165,7 @@ export default function App() {
             onChange={onChangeSelectedTime}
             minTime={minTime}
             maxTime={maxTime}
-            timingFormat={timingFormat.value}
+            clockSystem={timingFormat.value}
             timeSuggestionProps={{
               intervalMinutes: 30,
             }}
