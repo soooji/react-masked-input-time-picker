@@ -40,7 +40,7 @@ export const TimePicker: FC<TimePickerProps> = ({
   onChange,
 }) => {
   const getTodayUpdateTimeWithDate = (t: Dayjs) =>
-    t ? dayjs().hour(t.hour()).minute(t.minute()).second(0) : undefined;
+    dayjs().hour(t.hour()).minute(t.minute()).second(0);
 
   const timeConstraintsWithoutSeconds = useMemo(() => {
     return {
@@ -55,7 +55,7 @@ export const TimePicker: FC<TimePickerProps> = ({
 
   // Configs
   const momentFormat = useMemo(
-    () => (timingFormat === "12h" ? "hh:mm a" : "HH:mm"),
+    () => (timingFormat === "12h" ? "hh:mm A" : "HH:mm"),
     [timingFormat]
   );
   const defaultValue = useMemo(
@@ -119,7 +119,9 @@ export const TimePicker: FC<TimePickerProps> = ({
     if (!isValidTimeFormat(timeValue, { timeFormat: timingFormat })) {
       return false;
     }
-    const momentValue = getTodayWithTime(timeValue, momentFormat);
+    const momentValue = getTodayUpdateTimeWithDate(
+      dayjs(timeValue, momentFormat)
+    );
     const isInMinMaxRange =
       momentValue.isSameOrAfter(
         timeConstraintsWithoutSeconds.minTime,
@@ -129,6 +131,7 @@ export const TimePicker: FC<TimePickerProps> = ({
         timeConstraintsWithoutSeconds.maxTime,
         "minute"
       );
+
     return isInMinMaxRange;
   };
 
